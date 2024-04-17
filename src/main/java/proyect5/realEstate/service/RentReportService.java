@@ -9,9 +9,5 @@ import java.util.Date;
 import java.util.List;
 
 public interface RentReportService {
-    List<RentReportDTO> generateAllRentalReport(
-            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
-            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate,
-            @RequestParam(value = "province", required = false) String provinceName
-    );
+    List<RentReportDTO> generateAllRentalReport(InputDTO inputDTO);
 }

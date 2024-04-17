@@ -25,7 +25,7 @@ public class RentReportServiceImpl implements RentReportService {
     @Autowired
     private EntityManager entityManager;
     @Override
-    public List<RentReportDTO> generateAllRentalReport(Date fromDate, Date toDate, String provinceName) {
+    public List<RentReportDTO> generateAllRentalReport(InputDTO inputDTO) {
 
         //Crear un objeto CriteriaBuilder
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -37,15 +37,15 @@ public class RentReportServiceImpl implements RentReportService {
         //Crear una lista para almacenar los predicados que se agregaran a la consulta
         List<Predicate> predicates = new ArrayList<>();
         //Agregar un predicado para filtrar los contratos dentro del período dado
-        predicates.add(cb.between(rentRoot.get("from"),fromDate,toDate));
+        predicates.add(cb.between(rentRoot.get("from"),inputDTO.getFrom(),inputDTO.getTo()));
         //Si se proporciona el nombre de la provincia, agregar un predicado
         //para filtrar por provincia
-        if(provinceName != null){
+        if(inputDTO.getProvince() != null){
             Join<Rent, Flat> flatJoin = rentRoot.join("flat");
             Join<Flat, Locality> localityJoin = flatJoin.join("locality");
             Join<Locality, Province> provinceJoin = localityJoin.join("province");
             predicates.add(cb.like(cb.lower(provinceJoin.get("name")),"%" +
-                    provinceName.toLowerCase() + "%"));
+                    inputDTO.getProvince().toLowerCase() + "%"));
         }
 
         //Creando una expresion para contatenar el nombre completo
@@ -70,5 +70,4 @@ public class RentReportServiceImpl implements RentReportService {
 
         return entityManager.createQuery(cq).getResultList();
     }
-
 }
