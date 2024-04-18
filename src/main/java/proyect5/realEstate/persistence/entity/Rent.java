@@ -5,7 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import proyect5.realEstate.persistence.dtos.PriceVariationFromAverageDTO;
+import proyect5.realEstate.persistence.dtos.RentReportDTO;
 
 import java.util.Date;
 @Entity
@@ -14,6 +17,22 @@ import java.util.Date;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@SqlResultSetMapping(
+        name = "PriceVariationFromAverageMapping",
+        classes = {
+                @ConstructorResult(
+                        targetClass = PriceVariationFromAverageDTO.class,
+                        columns = {
+                                @ColumnResult(name = "flatId", type = Integer.class),
+                                @ColumnResult(name = "street", type = String.class),
+                                @ColumnResult(name = "province", type = String.class),
+                                @ColumnResult(name = "locality", type = String.class),
+                                @ColumnResult(name = "flatPrice", type = Double.class),
+                                @ColumnResult(name = "averagePrice", type = Double.class)
+                        }
+                )
+        }
+)
 public class Rent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

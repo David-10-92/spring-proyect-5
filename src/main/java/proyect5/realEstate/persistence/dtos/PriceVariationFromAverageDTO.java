@@ -1,25 +1,22 @@
 package proyect5.realEstate.persistence.dtos;
 
-import jakarta.persistence.ColumnResult;
-import jakarta.persistence.ConstructorResult;
-import jakarta.persistence.SqlResultSetMapping;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.math.BigDecimal;
 
-@Setter
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RentReportDTO {
+public class PriceVariationFromAverageDTO {
     private Integer flatId;
     private String street;
-    private String client;
-    private Date from;
-    private Date to;
     private String province;
     private String locality;
+    private double flatPrice;
+    private double averagePrice;
+    private double variation;
 }

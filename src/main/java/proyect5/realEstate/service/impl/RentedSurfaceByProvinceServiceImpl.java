@@ -1,6 +1,7 @@
 package proyect5.realEstate.service.impl;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,53 @@ import java.util.List;
 public class RentedSurfaceByProvinceServiceImpl implements RentedSurfaceByProvinceService {
     @Autowired
     private EntityManager entityManager;
+
     @Override
+    public List<RentedSurfaceByProvinceDTO> generateReport(InputDTO inputDTO) {
+        // Obtener los parámetros de entrada desde el objeto InputDTO
+        String provinceName = inputDTO.getProvince();
+        Date fromDate = inputDTO.getFrom();
+        Date toDate = inputDTO.getTo();
+
+        // Construir la consulta SQL nativa
+        String sql = "SELECT "
+                + "    p.name AS province, "
+                + "    COUNT(DISTINCT r.flat_id) AS totalFlats, "
+                + "    SUM(f.area) AS totalSurface "
+                + "FROM "
+                + "    rents r "
+                + "    JOIN flats f ON r.flat_id = f.id "
+                + "    JOIN localities l ON f.locality_id = l.id "
+                + "    JOIN provinces p ON l.province_id = p.id "
+                + "WHERE "
+                + "    (:provinceName IS NULL OR LOWER(p.name) = :provinceName) "
+                + "    AND (:fromDate IS NULL OR :toDate IS NULL OR r.from BETWEEN :fromDate AND :toDate) "
+                + "GROUP BY "
+                + "    p.name";
+
+        // Crear la consulta SQL nativa
+        Query query = entityManager.createNativeQuery(sql);
+
+        // Establecer parámetros si es necesario
+        query.setParameter("provinceName", provinceName != null ? provinceName.toLowerCase() : null);
+        query.setParameter("fromDate", fromDate);
+        query.setParameter("toDate", toDate);
+
+        // Obtener los resultados y mapearlos al DTO
+        List<Object[]> resultList = query.getResultList();
+        List<RentedSurfaceByProvinceDTO> report = new ArrayList<>();
+        for (Object[] result : resultList) {
+            RentedSurfaceByProvinceDTO dto = new RentedSurfaceByProvinceDTO();
+            dto.setProvince((String) result[0]);
+            dto.setTotalFlats(((Number) result[1]).longValue());
+            dto.setTotalSurface(((Number) result[2]).doubleValue());
+            report.add(dto);
+        }
+
+        // Devolver el informe generado
+        return report;
+    }
+    /*@Override
     public List<RentedSurfaceByProvinceDTO> generateReport(InputDTO inputDTO) {
 
         //Obtener los parámetros de entrada desde el objeto InputDTO
@@ -67,5 +114,5 @@ public class RentedSurfaceByProvinceServiceImpl implements RentedSurfaceByProvin
 
         //Devolver el informe generado
         return report;
-    }
+    }*/
 }

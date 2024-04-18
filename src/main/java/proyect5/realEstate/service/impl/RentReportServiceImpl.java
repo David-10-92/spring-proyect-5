@@ -1,6 +1,7 @@
 package proyect5.realEstate.service.impl;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,7 +25,55 @@ public class RentReportServiceImpl implements RentReportService {
 
     @Autowired
     private EntityManager entityManager;
+
     @Override
+    public List<RentReportDTO> generateAllRentalReport(InputDTO inputDTO) {
+        // Construir la consulta SQL nativa
+        String sql = "SELECT "
+                + "    f.id AS flatId, "
+                + "    f.address AS street, "
+                + "    CONCAT(c.name, ' ', c.surname) AS client, "
+                + "    r.from AS fromDate, "
+                + "    r.to AS toDate, "
+                + "    p.name AS province, "
+                + "    l.name AS locality "
+                + "FROM "
+                + "    rents r "
+                + "    JOIN flats f ON r.flat_id = f.id "
+                + "    JOIN clients c ON r.client_id = c.id "
+                + "    JOIN localities l ON f.locality_id = l.id "
+                + "    JOIN provinces p ON l.province_id = p.id "
+                + "WHERE "
+                + "    (:fromDate IS NULL OR :toDate IS NULL OR r.from BETWEEN :fromDate AND :toDate) "
+                + "    AND (:provinceName IS NULL OR LOWER(p.name) LIKE :provinceName)";
+
+        // Crear la consulta SQL nativa
+        Query query = entityManager.createNativeQuery(sql);
+
+        // Establecer parámetros si es necesario
+        query.setParameter("fromDate", inputDTO.getFrom());
+        query.setParameter("toDate", inputDTO.getTo());
+        query.setParameter("provinceName", inputDTO.getProvince() != null ? "%" + inputDTO.getProvince().toLowerCase() + "%" : null);
+
+        // Obtener los resultados y mapearlos al DTO
+        List<Object[]> resultList = query.getResultList();
+        List<RentReportDTO> rentReportDTOList = new ArrayList<>();
+        for (Object[] result : resultList) {
+            RentReportDTO rentReportDTO = new RentReportDTO();
+            rentReportDTO.setFlatId((Integer) result[0]);
+            rentReportDTO.setStreet((String) result[1]);
+            rentReportDTO.setClient((String) result[2]);
+            rentReportDTO.setFrom((Date) result[3]);
+            rentReportDTO.setTo((Date) result[4]);
+            rentReportDTO.setProvince((String) result[5]);
+            rentReportDTO.setLocality((String) result[6]);
+            rentReportDTOList.add(rentReportDTO);
+        }
+
+        return rentReportDTOList;
+    }
+
+    /*@Override
     public List<RentReportDTO> generateAllRentalReport(InputDTO inputDTO) {
 
         //Crear un objeto CriteriaBuilder
@@ -69,5 +118,6 @@ public class RentReportServiceImpl implements RentReportService {
         //Ejecutar la consulta y devolver los resultados
 
         return entityManager.createQuery(cq).getResultList();
-    }
+    }*/
+
 }

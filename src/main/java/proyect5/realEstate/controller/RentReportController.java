@@ -2,14 +2,13 @@ package proyect5.realEstate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import proyect5.realEstate.persistence.dtos.AveragePriceByProvinceDTO;
-import proyect5.realEstate.persistence.dtos.InputDTO;
-import proyect5.realEstate.persistence.dtos.RentReportDTO;
-import proyect5.realEstate.persistence.dtos.RentedSurfaceByProvinceDTO;
+import proyect5.realEstate.persistence.dtos.*;
 import proyect5.realEstate.service.AveragePriceByProvinceService;
+import proyect5.realEstate.service.PriceVariationFromAverageService;
 import proyect5.realEstate.service.RentReportService;
 import proyect5.realEstate.service.RentedSurfaceByProvinceService;
 
@@ -26,6 +25,9 @@ public class RentReportController {
 
     @Autowired
     private AveragePriceByProvinceService averagePriceByProvinceService;
+
+    @Autowired
+    private PriceVariationFromAverageService priceVariationFromAverageService;
 
     @GetMapping("/allRents")
     public ResponseEntity<List<RentReportDTO>> generateAllRentReport(InputDTO inputDTO){
@@ -47,6 +49,13 @@ public class RentReportController {
             InputDTO inputDTO) {
 
         List<AveragePriceByProvinceDTO> report = averagePriceByProvinceService.generateReport(inputDTO);
+        return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/priceVariationFromAverageByProvince")
+    public ResponseEntity<List<PriceVariationFromAverageDTO>> generatePriceVariationReport(InputDTO inputDTO) {
+
+        List<PriceVariationFromAverageDTO> report = priceVariationFromAverageService.generateReport(inputDTO);
         return ResponseEntity.ok(report);
     }
 }

@@ -1,6 +1,7 @@
 package proyect5.realEstate.service.impl;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,50 @@ public class AveragePriceByProvinceServiceImpl implements AveragePriceByProvince
     private EntityManager entityManager;
 
     @Override
+    public List<AveragePriceByProvinceDTO> generateReport(InputDTO inputDTO) {
+        // Obtener los parámetros de entrada desde el objeto InputDTO
+        Date fromDate = inputDTO.getFrom();
+        Date toDate = inputDTO.getTo();
+        String provinceName = inputDTO.getProvince();
+
+        // Construir la consulta SQL nativa
+        String sql = "SELECT "
+                + "    p.name AS province, "
+                + "    AVG(r.price) AS averagePrice "
+                + "FROM "
+                + "    rents r "
+                + "    JOIN flats f ON r.flat_id = f.id "
+                + "    JOIN localities l ON f.locality_id = l.id "
+                + "    JOIN provinces p ON l.province_id = p.id "
+                + "WHERE "
+                + "    (:fromDate IS NULL OR :toDate IS NULL OR r.from BETWEEN :fromDate AND :toDate) "
+                + "    AND (:provinceName IS NULL OR LOWER(p.name) = :provinceName) "
+                + "GROUP BY "
+                + "    p.name";
+
+        // Crear la consulta SQL nativa
+        Query query = entityManager.createNativeQuery(sql);
+
+        // Establecer parámetros si es necesario
+        query.setParameter("fromDate", fromDate);
+        query.setParameter("toDate", toDate);
+        query.setParameter("provinceName", provinceName != null ? provinceName.toLowerCase() : null);
+
+        // Obtener los resultados y mapearlos al DTO
+        List<Object[]> resultList = query.getResultList();
+        List<AveragePriceByProvinceDTO> report = new ArrayList<>();
+        for (Object[] result : resultList) {
+            AveragePriceByProvinceDTO dto = new AveragePriceByProvinceDTO();
+            dto.setProvince((String) result[0]);
+            dto.setAveragePrice(((Number) result[1]).doubleValue());
+            report.add(dto);
+        }
+
+        // Devolver el informe generado
+        return report;
+    }
+
+    /*@Override
     public List<AveragePriceByProvinceDTO> generateReport(InputDTO inputDTO) {
         //Obtener los parámetros de entrada desde el objeto InputDTO
         Date fromDate = inputDTO.getFrom();
@@ -71,5 +116,5 @@ public class AveragePriceByProvinceServiceImpl implements AveragePriceByProvince
         //Ejecutar la consulta y obtener los resultados
         TypedQuery<AveragePriceByProvinceDTO> query = entityManager.createQuery(cq);
         return query.getResultList();
-    }
+    }*/
 }
