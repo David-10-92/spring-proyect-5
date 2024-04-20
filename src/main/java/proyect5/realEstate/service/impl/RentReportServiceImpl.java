@@ -14,6 +14,8 @@ import proyect5.realEstate.persistence.entity.Locality;
 import proyect5.realEstate.persistence.entity.Province;
 import proyect5.realEstate.persistence.entity.Rent;
 import proyect5.realEstate.service.RentReportService;
+import proyect5.realEstate.service.error.ErrorCode;
+import proyect5.realEstate.service.error.ServiceError;
 
 import java.util.ArrayList;
 
@@ -28,6 +30,15 @@ public class RentReportServiceImpl implements RentReportService {
 
     @Override
     public List<RentReportDTO> generateAllRentalReport(InputDTO inputDTO) {
+        // Obtener los parámetros de entrada desde el objeto InputDTO
+        Date fromDate = inputDTO.getFrom();
+        Date toDate = inputDTO.getTo();
+        String provinceName = inputDTO.getProvince();
+
+        // Validar que los parámetros de entrada no estén vacíos
+        if (fromDate == null || toDate == null || provinceName == null || provinceName.isEmpty()) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT,"Los parámetros de entrada no pueden estar vacíos");
+        }
         // Construir la consulta SQL nativa
         String sql = "SELECT "
                 + "    f.id AS flatId, "
@@ -51,9 +62,9 @@ public class RentReportServiceImpl implements RentReportService {
         Query query = entityManager.createNativeQuery(sql);
 
         // Establecer parámetros si es necesario
-        query.setParameter("fromDate", inputDTO.getFrom());
-        query.setParameter("toDate", inputDTO.getTo());
-        query.setParameter("provinceName", inputDTO.getProvince() != null ? "%" + inputDTO.getProvince().toLowerCase() + "%" : null);
+        query.setParameter("fromDate", fromDate);
+        query.setParameter("toDate", toDate);
+        query.setParameter("provinceName", provinceName != null ? "%" + inputDTO.getProvince().toLowerCase() + "%" : null);
 
         // Obtener los resultados y mapearlos al DTO
         List<Object[]> resultList = query.getResultList();

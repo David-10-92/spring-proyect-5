@@ -13,6 +13,8 @@ import proyect5.realEstate.persistence.entity.Locality;
 import proyect5.realEstate.persistence.entity.Province;
 import proyect5.realEstate.persistence.entity.Rent;
 import proyect5.realEstate.service.AveragePriceByProvinceService;
+import proyect5.realEstate.service.error.ErrorCode;
+import proyect5.realEstate.service.error.ServiceError;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,6 +32,11 @@ public class AveragePriceByProvinceServiceImpl implements AveragePriceByProvince
         Date fromDate = inputDTO.getFrom();
         Date toDate = inputDTO.getTo();
         String provinceName = inputDTO.getProvince();
+
+        // Validar que los parámetros de entrada no estén vacíos
+        if (fromDate == null || toDate == null || provinceName == null || provinceName.isEmpty()) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT,"Los parámetros de entrada no pueden estar vacíos");
+        }
 
         // Construir la consulta SQL nativa
         String sql = "SELECT "

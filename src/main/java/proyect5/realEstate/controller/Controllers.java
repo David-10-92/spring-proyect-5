@@ -1,25 +1,34 @@
 package proyect5.realEstate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import proyect5.realEstate.persistence.dtos.*;
 import proyect5.realEstate.service.AveragePriceByProvinceService;
 import proyect5.realEstate.service.PriceVariationFromAverageService;
 import proyect5.realEstate.service.RentReportService;
 import proyect5.realEstate.service.RentedSurfaceByProvinceService;
+import proyect5.realEstate.service.error.ServiceError;
 
-import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/reports")
-public class RentReportController {
+public class Controllers {
+
+    private <T> ResponseEntity handleRequest(Supplier<T> supplier){
+        try{
+            return ResponseEntity.ok(supplier.get());
+        }catch(ServiceError e){
+            return new ResponseEntity(e.getMessage(), HttpStatusCode.valueOf(e.getErrorCode().getHttpErrorCode()));
+        }
+    }
+
     @Autowired
     private RentReportService rentReportService;
+
     @Autowired
     private RentedSurfaceByProvinceService rentedSurfaceByProvinceService;
 
@@ -31,31 +40,23 @@ public class RentReportController {
 
     @GetMapping("/allRents")
     public ResponseEntity<List<RentReportDTO>> generateAllRentReport(InputDTO inputDTO){
-
-        List<RentReportDTO> rentReport = rentReportService.generateAllRentalReport(inputDTO);
-        return ResponseEntity.ok(rentReport);
+        return handleRequest( ()-> rentReportService.generateAllRentalReport(inputDTO));
     }
 
     @GetMapping("/rentedSurfaceByProvince")
     public ResponseEntity<List<RentedSurfaceByProvinceDTO>> generateRentedSurfaceByProvinceReport(
             InputDTO inputDTO) {
-
-        List<RentedSurfaceByProvinceDTO> report = rentedSurfaceByProvinceService.generateReport(inputDTO);
-        return ResponseEntity.ok(report);
+        return handleRequest( ()-> rentedSurfaceByProvinceService.generateReport(inputDTO));
     }
 
     @GetMapping("/averagePriceByProvince")
     public ResponseEntity<List<AveragePriceByProvinceDTO>> generateAveragePriceByProvinceReport(
             InputDTO inputDTO) {
-
-        List<AveragePriceByProvinceDTO> report = averagePriceByProvinceService.generateReport(inputDTO);
-        return ResponseEntity.ok(report);
+        return handleRequest( ()-> averagePriceByProvinceService.generateReport(inputDTO));
     }
 
     @GetMapping("/priceVariationFromAverageByProvince")
     public ResponseEntity<List<PriceVariationFromAverageDTO>> generatePriceVariationReport(InputDTO inputDTO) {
-
-        List<PriceVariationFromAverageDTO> report = priceVariationFromAverageService.generateReport(inputDTO);
-        return ResponseEntity.ok(report);
+        return handleRequest( ()-> priceVariationFromAverageService.generateReport(inputDTO));
     }
 }
