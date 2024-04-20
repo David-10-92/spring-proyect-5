@@ -34,7 +34,7 @@ public class AveragePriceByProvinceServiceImpl implements AveragePriceByProvince
         String provinceName = inputDTO.getProvince();
 
         // Validar que los parámetros de entrada no estén vacíos
-        if (fromDate == null || toDate == null || provinceName == null || provinceName.isEmpty()) {
+        if (fromDate == null || toDate == null) {
             throw new ServiceError(ErrorCode.INVALID_INPUT,"Los parámetros de entrada no pueden estar vacíos");
         }
 
