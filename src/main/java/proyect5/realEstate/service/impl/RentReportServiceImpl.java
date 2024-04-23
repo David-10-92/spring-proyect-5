@@ -4,11 +4,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
-import proyect5.realEstate.persistence.dtos.InputDTO;
-import proyect5.realEstate.persistence.dtos.RentReportDTO;
+import proyect5.realEstate.service.dtos.InputDTO;
+import proyect5.realEstate.service.dtos.RentReportDTO;
 import proyect5.realEstate.persistence.entity.Flat;
 import proyect5.realEstate.persistence.entity.Locality;
 import proyect5.realEstate.persistence.entity.Province;
@@ -29,7 +27,7 @@ public class RentReportServiceImpl implements RentReportService {
     private EntityManager entityManager;
 
     @Override
-    public List<RentReportDTO> generateAllRentalReport(InputDTO inputDTO) {
+    public List<RentReportDTO> generateAllRentalReportNative(InputDTO inputDTO) {
         // Obtener los parámetros de entrada desde el objeto InputDTO
         Date fromDate = inputDTO.getFrom();
         Date toDate = inputDTO.getTo();
@@ -84,8 +82,8 @@ public class RentReportServiceImpl implements RentReportService {
         return rentReportDTOList;
     }
 
-    /*@Override
-    public List<RentReportDTO> generateAllRentalReport(InputDTO inputDTO) {
+    @Override
+    public List<RentReportDTO> generateAllRentalReportCriteria(InputDTO inputDTO) {
 
         //Crear un objeto CriteriaBuilder
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -129,6 +127,6 @@ public class RentReportServiceImpl implements RentReportService {
         //Ejecutar la consulta y devolver los resultados
 
         return entityManager.createQuery(cq).getResultList();
-    }*/
+    }
 
 }

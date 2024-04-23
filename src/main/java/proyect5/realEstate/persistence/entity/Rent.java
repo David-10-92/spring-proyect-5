@@ -5,10 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import proyect5.realEstate.persistence.dtos.PriceVariationFromAverageDTO;
-import proyect5.realEstate.persistence.dtos.RentReportDTO;
+import proyect5.realEstate.service.dtos.PriceVariationFromAverageDTO;
 
 import java.util.Date;
 @Entity

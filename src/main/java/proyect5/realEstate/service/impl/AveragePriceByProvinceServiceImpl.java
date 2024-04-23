@@ -6,8 +6,8 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import proyect5.realEstate.persistence.dtos.AveragePriceByProvinceDTO;
-import proyect5.realEstate.persistence.dtos.InputDTO;
+import proyect5.realEstate.service.dtos.AveragePriceByProvinceDTO;
+import proyect5.realEstate.service.dtos.InputDTO;
 import proyect5.realEstate.persistence.entity.Flat;
 import proyect5.realEstate.persistence.entity.Locality;
 import proyect5.realEstate.persistence.entity.Province;
@@ -27,7 +27,7 @@ public class AveragePriceByProvinceServiceImpl implements AveragePriceByProvince
     private EntityManager entityManager;
 
     @Override
-    public List<AveragePriceByProvinceDTO> generateReport(InputDTO inputDTO) {
+    public List<AveragePriceByProvinceDTO> generateReportNative(InputDTO inputDTO) {
         // Obtener los parámetros de entrada desde el objeto InputDTO
         Date fromDate = inputDTO.getFrom();
         Date toDate = inputDTO.getTo();
@@ -75,8 +75,8 @@ public class AveragePriceByProvinceServiceImpl implements AveragePriceByProvince
         return report;
     }
 
-    /*@Override
-    public List<AveragePriceByProvinceDTO> generateReport(InputDTO inputDTO) {
+    @Override
+    public List<AveragePriceByProvinceDTO> generateReportCriteria(InputDTO inputDTO) {
         //Obtener los parámetros de entrada desde el objeto InputDTO
         Date fromDate = inputDTO.getFrom();
         Date toDate = inputDTO.getTo();
@@ -123,5 +123,5 @@ public class AveragePriceByProvinceServiceImpl implements AveragePriceByProvince
         //Ejecutar la consulta y obtener los resultados
         TypedQuery<AveragePriceByProvinceDTO> query = entityManager.createQuery(cq);
         return query.getResultList();
-    }*/
+    }
 }

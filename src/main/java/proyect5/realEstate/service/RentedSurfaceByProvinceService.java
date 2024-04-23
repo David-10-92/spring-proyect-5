@@ -1,10 +1,11 @@
 package proyect5.realEstate.service;
 
-import proyect5.realEstate.persistence.dtos.InputDTO;
-import proyect5.realEstate.persistence.dtos.RentedSurfaceByProvinceDTO;
+import proyect5.realEstate.service.dtos.InputDTO;
+import proyect5.realEstate.service.dtos.RentedSurfaceByProvinceDTO;
 
 import java.util.List;
 
 public interface RentedSurfaceByProvinceService {
-    List<RentedSurfaceByProvinceDTO> generateReport(InputDTO inputDTO);
+    List<RentedSurfaceByProvinceDTO> generateReportNative(InputDTO inputDTO);
+    List<RentedSurfaceByProvinceDTO> generateReportCriteria(InputDTO inputDTO);
 }

@@ -6,9 +6,8 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import proyect5.realEstate.persistence.dtos.InputDTO;
-import proyect5.realEstate.persistence.dtos.RentedSurfaceByProvinceDTO;
+import proyect5.realEstate.service.dtos.InputDTO;
+import proyect5.realEstate.service.dtos.RentedSurfaceByProvinceDTO;
 import proyect5.realEstate.persistence.entity.Flat;
 import proyect5.realEstate.persistence.entity.Locality;
 import proyect5.realEstate.persistence.entity.Province;
@@ -27,7 +26,7 @@ public class RentedSurfaceByProvinceServiceImpl implements RentedSurfaceByProvin
     private EntityManager entityManager;
 
     @Override
-    public List<RentedSurfaceByProvinceDTO> generateReport(InputDTO inputDTO) {
+    public List<RentedSurfaceByProvinceDTO> generateReportNative(InputDTO inputDTO) {
         // Obtener los parámetros de entrada desde el objeto InputDTO
         String provinceName = inputDTO.getProvince();
         Date fromDate = inputDTO.getFrom();
@@ -76,8 +75,8 @@ public class RentedSurfaceByProvinceServiceImpl implements RentedSurfaceByProvin
         // Devolver el informe generado
         return report;
     }
-    /*@Override
-    public List<RentedSurfaceByProvinceDTO> generateReport(InputDTO inputDTO) {
+    @Override
+    public List<RentedSurfaceByProvinceDTO> generateReportCriteria(InputDTO inputDTO) {
 
         //Obtener los parámetros de entrada desde el objeto InputDTO
         String provinceName = inputDTO.getProvince();
@@ -121,5 +120,5 @@ public class RentedSurfaceByProvinceServiceImpl implements RentedSurfaceByProvin
 
         //Devolver el informe generado
         return report;
-    }*/
+    }
 }

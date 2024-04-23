@@ -6,8 +6,8 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import proyect5.realEstate.persistence.dtos.InputDTO;
-import proyect5.realEstate.persistence.dtos.PriceVariationFromAverageDTO;
+import proyect5.realEstate.service.dtos.InputDTO;
+import proyect5.realEstate.service.dtos.PriceVariationFromAverageDTO;
 import proyect5.realEstate.persistence.entity.Flat;
 import proyect5.realEstate.persistence.entity.Locality;
 import proyect5.realEstate.persistence.entity.Province;
@@ -27,7 +27,7 @@ public class PriceVariationFromAverageServiceImpl implements PriceVariationFromA
     private EntityManager entityManager;
 
     @Override
-    public List<PriceVariationFromAverageDTO> generateReport(InputDTO inputDTO) {
+    public List<PriceVariationFromAverageDTO> generateReportNative(InputDTO inputDTO) {
         // Obtener los parámetros de entrada desde el objeto InputDTO
         Date fromDate = inputDTO.getFrom();
         Date toDate = inputDTO.getTo();
@@ -69,83 +69,74 @@ public class PriceVariationFromAverageServiceImpl implements PriceVariationFromA
         // Ejecutar la consulta y devolver los resultados
         return query.getResultList();
     }
-    /*@Override
-    public List<PriceVariationFromAverageDTO> generateReport(InputDTO inputDTO) {
+
+    @Override
+    public List<PriceVariationFromAverageDTO> generateReportCriteria(InputDTO inputDTO) {
         // Obtener los parámetros de entrada desde el objeto InputDTO
         Date fromDate = inputDTO.getFrom();
         Date toDate = inputDTO.getTo();
         String provinceName = inputDTO.getProvince();
 
-        // Construir la Criteria Query
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<PriceVariationFromAverageDTO> criteriaQuery = criteriaBuilder.createQuery(PriceVariationFromAverageDTO.class);
-        Root<Rent> rentRoot = criteriaQuery.from(Rent.class);
+        // Crear un CriteriaBuilder para construir la consulta
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        // Crear un CriteriaQuery con el tipo de resultado deseado
+        CriteriaQuery<PriceVariationFromAverageDTO> cq = cb.createQuery(PriceVariationFromAverageDTO.class);
+
+        // Crear un objeto Root para especificar la entidad principal sobre la que se realizará la consulta
+        Root<Rent> rentRoot = cq.from(Rent.class);
+
+        // Realizar las joins necesarias para acceder a las entidades relacionadas
         Join<Rent, Flat> flatJoin = rentRoot.join("flat");
         Join<Flat, Locality> localityJoin = flatJoin.join("locality");
         Join<Locality, Province> provinceJoin = localityJoin.join("province");
 
-        // Subconsulta para calcular la suma total de los precios de los pisos por provincia
-        Subquery<Double> sumSubquery = criteriaQuery.subquery(Double.class);
-        Root<Rent> sumRentRoot = sumSubquery.from(Rent.class);
-        Join<Rent, Flat> sumFlatJoin = sumRentRoot.join("flat");
-        Join<Flat, Locality> sumLocalityJoin = sumFlatJoin.join("locality");
-        Join<Locality, Province> sumProvinceJoin = sumLocalityJoin.join("province");
+        // Especificar las expresiones de selección
+        Expression<Double> flatPriceExpression = flatJoin.get("price");
 
-        sumSubquery.select(criteriaBuilder.sum(sumFlatJoin.get("price")))
-                .where(criteriaBuilder.equal(sumProvinceJoin.get("name"), provinceJoin.get("name")));
+        // Subconsulta para calcular el precio medio por provincia
+        Subquery<Double> avgPriceSubquery = cq.subquery(Double.class);
+        Root<Rent> subRentRoot = avgPriceSubquery.from(Rent.class);
+        Join<Rent, Flat> subFlatJoin = subRentRoot.join("flat");
+        Join<Flat, Locality> subLocalityJoin = subFlatJoin.join("locality");
+        Join<Locality, Province> subProvinceJoin = subLocalityJoin.join("province");
 
-        // Subconsulta para contar la cantidad de pisos por provincia
-        Subquery<Long> countSubquery = criteriaQuery.subquery(Long.class);
-        Root<Flat> countFlatRoot = countSubquery.from(Flat.class);
-        Join<Flat, Locality> countLocalityJoin = countFlatRoot.join("locality");
-        Join<Locality, Province> countProvinceJoin = countLocalityJoin.join("province");
+        avgPriceSubquery.select(cb.avg(subFlatJoin.get("price")))
+                .where(cb.equal(subProvinceJoin.get("name"), provinceName));
 
-        countSubquery.select(criteriaBuilder.count(countFlatRoot))
-                .where(criteriaBuilder.equal(countProvinceJoin.get("name"), provinceJoin.get("name")));
+        Expression<Number> variation = cb.prod(
+                cb.quot(
+                        cb.diff(flatPriceExpression, avgPriceSubquery.getSelection()),
+                        avgPriceSubquery.getSelection()
+                ),
+                100
+        );
 
-        // Obtener la media del precio de los pisos por provincia
-        Expression<Double> sumPrice = criteriaBuilder.sum(sumSubquery.getSelection());
-        Expression<Long> countFlats = criteriaBuilder.count(countSubquery.getSelection());
-        Expression<Double> averagePrice = criteriaBuilder.quot(sumPrice, criteriaBuilder.prod(countFlats, 1.0)).as(Double.class);
-
-        // Definir las selecciones
-        criteriaQuery.multiselect(
+        // Construir la consulta para obtener los datos necesarios
+        cq.multiselect(
                 flatJoin.get("id").alias("flatId"),
                 flatJoin.get("address").alias("street"),
                 provinceJoin.get("name").alias("province"),
                 localityJoin.get("name").alias("locality"),
-                rentRoot.get("price").alias("flatPrice"),
-                averagePrice.alias("averagePrice"), // Utilizar la media calculada aquí
-                criteriaBuilder.prod(
-                        criteriaBuilder.quot(
-                                criteriaBuilder.diff(rentRoot.get("price"), averagePrice), // Utilizar la media calculada aquí
-                                averagePrice // Utilizar la media calculada aquí
-                        ),
-                        100
-                ).alias("variation")
+                flatPriceExpression.alias("flatPrice"),
+                avgPriceSubquery.getSelection().alias("averagePrice"),
+                variation.alias("variation")
         );
 
-        // Definir las restricciones
+        // Aplicar filtros según los parámetros de entrada
         List<Predicate> predicates = new ArrayList<>();
         if (fromDate != null && toDate != null) {
-            predicates.add(criteriaBuilder.between(rentRoot.get("from"), fromDate, toDate));
+            predicates.add(cb.between(rentRoot.get("from"), fromDate, toDate));
         }
-        if (provinceName != null) {
-            predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(provinceJoin.get("name")), provinceName.toLowerCase()));
+        if (provinceName != null && !provinceName.isEmpty()) {
+            predicates.add(cb.equal(cb.lower(provinceJoin.get("name")), provinceName.toLowerCase()));
         }
-        criteriaQuery.where(predicates.toArray(new Predicate[0]));
 
-        // Agrupar los resultados
-        criteriaQuery.groupBy(
-                flatJoin.get("id"),
-                flatJoin.get("address"),
-                provinceJoin.get("name"),
-                localityJoin.get("name"),
-                rentRoot.get("price")
-        );
+        // Agregar los predicados al CriteriaQuery
+        cq.where(predicates.toArray(new Predicate[0]));
 
-        // Crear y ejecutar la consulta
-        TypedQuery<PriceVariationFromAverageDTO> typedQuery = entityManager.createQuery(criteriaQuery);
-        return typedQuery.getResultList();
-    }*/
+        // Ejecutar la consulta y obtener los resultados
+        TypedQuery<PriceVariationFromAverageDTO> query = entityManager.createQuery(cq);
+        return query.getResultList();
+    }
 }

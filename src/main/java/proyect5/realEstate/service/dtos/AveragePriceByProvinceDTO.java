@@ -1,18 +1,15 @@
-package proyect5.realEstate.persistence.dtos;
+package proyect5.realEstate.service.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RentedSurfaceByProvinceDTO {
+public class AveragePriceByProvinceDTO {
     private String province;
-    private Long totalFlats;
-    private double totalSurface;
+    private double averagePrice;
 }
-
-

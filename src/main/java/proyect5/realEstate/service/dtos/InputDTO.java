@@ -1,4 +1,4 @@
-package proyect5.realEstate.persistence.dtos;
+package proyect5.realEstate.service.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
