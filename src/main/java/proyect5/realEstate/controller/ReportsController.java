@@ -59,4 +59,8 @@ public class ReportsController {
     public ResponseEntity<List<PriceVariationFromAverageDTO>> generatePriceVariationReport(InputDTO inputDTO) {
         return handleRequest( ()-> priceVariationFromAverageService.generateReportCriteria(inputDTO));
     }
+    @GetMapping("/priceVariationFromAverageByProvinceNative")
+    public ResponseEntity<List<PriceVariationFromAverageDTO>> generatePriceVariationReport2(InputDTO inputDTO) {
+        return handleRequest( ()-> priceVariationFromAverageService.generateReportNative(inputDTO));
+    }
 }
