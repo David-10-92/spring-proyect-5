@@ -46,7 +46,7 @@ public class PriceVariationFromAverageServiceImpl implements PriceVariationFromA
                 + "    l.name AS locality, "
                 + "    r.price AS flatPrice, "
                 + "    (SELECT AVG(f2.price) FROM flats f2 JOIN localities l2 ON f2.locality_id = l2.id JOIN provinces p2 ON l2.province_id = p2.id WHERE p2.name = :provinceName) AS averagePrice, "
-                + "    ((r.price - (SELECT AVG(f2.price) FROM flats f2 JOIN localities l2 ON f2.locality_id = l2.id JOIN provinces p2 ON l2.province_id = p2.id WHERE p2.name = :provinceName)) / (SELECT AVG(f2.price) FROM flats f2 JOIN localities l2 ON f2.locality_id = l2.id JOIN provinces p2 ON l2.province_id = p2.id WHERE p2.name = :provinceName)) * 100 AS variation "
+                + "    ( 100 * (r.price / (SELECT AVG(f2.price) FROM flats f2 JOIN localities l2 ON f2.locality_id = l2.id JOIN provinces p2 ON l2.province_id = p2.id WHERE p2.name = :provinceName) - 1)) AS variation "
                 + "FROM "
                 + "    rents r "
                 + "    JOIN flats f ON r.flat_id = f.id "
@@ -55,8 +55,8 @@ public class PriceVariationFromAverageServiceImpl implements PriceVariationFromA
                 + "WHERE "
                 + "    (:fromDate IS NULL OR :toDate IS NULL OR r.from BETWEEN :fromDate AND :toDate) "
                 + "    AND (:provinceName IS NULL OR LOWER(p.name) = :provinceName) "
-                + "GROUP BY "
-                + "    f.id, f.address, p.name, l.name, r.price";
+                +
+                " ORDER BY r.id ASC";
 
         // Crear la consulta SQL nativa
         Query query = entityManager.createNativeQuery(sql, "PriceVariationFromAverageMapping");
@@ -85,41 +85,38 @@ public class PriceVariationFromAverageServiceImpl implements PriceVariationFromA
 
         // Crear un objeto Root para especificar la entidad principal sobre la que se realizará la consulta
         Root<Rent> rentRoot = cq.from(Rent.class);
-
+        cq.orderBy(cb.asc(rentRoot.get("id")));
         // Realizar las joins necesarias para acceder a las entidades relacionadas
         Join<Rent, Flat> flatJoin = rentRoot.join("flat");
         Join<Flat, Locality> localityJoin = flatJoin.join("locality");
         Join<Locality, Province> provinceJoin = localityJoin.join("province");
 
-        // Especificar las expresiones de selección
-        Expression<Double> flatPriceExpression = flatJoin.get("price");
-
         // Subconsulta para calcular el precio medio por provincia
         Subquery<Double> avgPriceSubquery = cq.subquery(Double.class);
-        Root<Rent> subRentRoot = avgPriceSubquery.from(Rent.class);
-        Join<Rent, Flat> subFlatJoin = subRentRoot.join("flat");
-        Join<Flat, Locality> subLocalityJoin = subFlatJoin.join("locality");
+        Root<Flat> flatRoot = avgPriceSubquery.from(Flat.class);
+
+        Join<Flat, Locality> subLocalityJoin = flatRoot.join("locality");
         Join<Locality, Province> subProvinceJoin = subLocalityJoin.join("province");
 
-        avgPriceSubquery.select(cb.avg(subFlatJoin.get("price")))
+        avgPriceSubquery
+                .select(cb.avg(flatRoot.get("price")))
                 .where(cb.equal(subProvinceJoin.get("name"), provinceName));
 
+        // La variación del precio es 100 * ( (precio_renta / precio_medio) -1 )
+        // que da valores negativos para rentas por debajo de la media, y positivos
+        // para las superiores.
         Expression<Number> variation = cb.prod(
-                cb.quot(
-                        cb.diff(flatPriceExpression, avgPriceSubquery.getSelection()),
-                        avgPriceSubquery.getSelection()
-                ),
-                100
+            cb.sum(cb.quot(rentRoot.get("price"),avgPriceSubquery.getSelection()),-1),
+            100
         );
-        // Obtener el valor absoluto de la variación
-        variation = cb.abs(variation);
+
         // Construir la consulta para obtener los datos necesarios
         cq.multiselect(
                 flatJoin.get("id").alias("flatId"),
                 flatJoin.get("address").alias("street"),
                 provinceJoin.get("name").alias("province"),
                 localityJoin.get("name").alias("locality"),
-                flatPriceExpression.alias("flatPrice"),
+                rentRoot.get("price").alias("flatPrice"),
                 avgPriceSubquery.getSelection().alias("averagePrice"),
                 variation.alias("variation")
         );
