@@ -111,8 +111,7 @@ public class PriceVariationFromAverageServiceImpl implements PriceVariationFromA
                 ),
                 100
         );
-        // Obtener el valor absoluto de la variación
-        variation = cb.abs(variation);
+
         // Construir la consulta para obtener los datos necesarios
         cq.multiselect(
                 flatJoin.get("id").alias("flatId"),
