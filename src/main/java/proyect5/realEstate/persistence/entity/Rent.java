@@ -25,7 +25,8 @@ import java.util.Date;
                                 @ColumnResult(name = "province", type = String.class),
                                 @ColumnResult(name = "locality", type = String.class),
                                 @ColumnResult(name = "flatPrice", type = Double.class),
-                                @ColumnResult(name = "averagePrice", type = Double.class)
+                                @ColumnResult(name = "averagePrice", type = Double.class),
+                                @ColumnResult(name = "variation", type = Double.class)
                         }
                 )
         }

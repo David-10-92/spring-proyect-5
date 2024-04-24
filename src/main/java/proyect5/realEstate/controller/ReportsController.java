@@ -38,25 +38,45 @@ public class ReportsController {
     @Autowired
     private PriceVariationFromAverageService priceVariationFromAverageService;
 
-    @GetMapping("/allRents")
+    @GetMapping("/allRentsCriteria")
     public ResponseEntity<List<RentReportDTO>> generateAllRentReport(InputDTO inputDTO){
         return handleRequest( ()-> rentReportService.generateAllRentalReportCriteria(inputDTO));
     }
 
-    @GetMapping("/rentedSurfaceByProvince")
+    @GetMapping("/rentedSurfaceByProvinceCriteria")
     public ResponseEntity<List<RentedSurfaceByProvinceDTO>> generateRentedSurfaceByProvinceReport(
             InputDTO inputDTO) {
         return handleRequest( ()-> rentedSurfaceByProvinceService.generateReportCriteria(inputDTO));
     }
 
-    @GetMapping("/averagePriceByProvince")
+    @GetMapping("/averagePriceByProvinceCriteria")
     public ResponseEntity<List<AveragePriceByProvinceDTO>> generateAveragePriceByProvinceReport(
             InputDTO inputDTO) {
         return handleRequest( ()-> averagePriceByProvinceService.generateReportCriteria(inputDTO));
     }
 
-    @GetMapping("/priceVariationFromAverageByProvince")
+    @GetMapping("/priceVariationFromAverageByProvinceCriteria")
     public ResponseEntity<List<PriceVariationFromAverageDTO>> generatePriceVariationReport(InputDTO inputDTO) {
         return handleRequest( ()-> priceVariationFromAverageService.generateReportCriteria(inputDTO));
+    }
+
+    @GetMapping("/allRentsNative")
+    public ResponseEntity<List<RentReportDTO>> generateAllRentReportNative(InputDTO inputDTO){
+        return handleRequest( ()-> rentReportService.generateAllRentalReportNative(inputDTO));
+    }
+
+    @GetMapping("/rentedSurfaceByProvinceNative")
+    public ResponseEntity<List<RentedSurfaceByProvinceDTO>> generateRentedSurfaceByProvinceReportNative(InputDTO inputDTO) {
+        return handleRequest( ()-> rentedSurfaceByProvinceService.generateReportNative(inputDTO));
+    }
+
+    @GetMapping("/averagePriceByProvinceNative")
+    public ResponseEntity<List<AveragePriceByProvinceDTO>> generateAveragePriceByProvinceReportNative(InputDTO inputDTO) {
+        return handleRequest( ()-> averagePriceByProvinceService.generateReportCriteria(inputDTO));
+    }
+
+    @GetMapping("/priceVariationFromAverageByProvinceNative")
+    public ResponseEntity<List<PriceVariationFromAverageDTO>> generatePriceVariationReportNative(InputDTO inputDTO) {
+        return handleRequest( ()-> priceVariationFromAverageService.generateReportNative(inputDTO));
     }
 }
